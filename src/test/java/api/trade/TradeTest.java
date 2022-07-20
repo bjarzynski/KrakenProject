@@ -30,4 +30,19 @@ public class TradeTest {
     Collections.sort(sorted);
     Assert.assertEquals(tradeTimes, sorted);
   }
+
+  @Test
+  public void checkTradeChannelName() throws URISyntaxException {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+    krakenClient.connect();
+    krakenClient.awaitForMessage(10);
+    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("subscribe", new String[]{"ETH/USD"}, new Subscription("trade"));
+    krakenClient.prepareMessageAwaiting();
+    krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
+    krakenClient.awaitForMessage(10);
+    krakenClient.prepareMessageAwaiting();
+    krakenClient.awaitForMessage(10);
+    TradeMessage tradeMessage = new TradeMessage(krakenClient.getLastMessage());;
+    Assert.assertEquals(tradeMessage.getChannelName(), "trade");
+  }
 }
