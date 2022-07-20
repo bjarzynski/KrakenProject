@@ -12,6 +12,11 @@ public class Subscription {
     this.name = name;
   }
 
+  public Subscription(String name, Integer depth) {
+    this.name = name;
+    this.depth = depth;
+  }
+
   public Integer getDepth() {
     return depth;
   }
