@@ -1,9 +1,6 @@
 package api.subscription;
 
-import api.Subscription;
-import api.SubscriptionMessage;
-import api.SubscriptionStatusMessage;
-import api.WebSocketKrakenClient;
+import api.*;
 import com.google.gson.Gson;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -41,7 +38,7 @@ public class SubscriptionTest {
       krakenClient.prepareMessageAwaiting();
       krakenClient.awaitForMessage(10);
     }
-    subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
+    subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessageContaining("event"), SubscriptionStatusMessage.class);
     Assert.assertEquals(subscriptionStatusMes.getStatus(), "unsubscribed");
     krakenClient.close();
   }

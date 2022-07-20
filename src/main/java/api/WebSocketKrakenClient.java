@@ -8,13 +8,15 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class WebSocketKrakenClient extends WebSocketClient {
   private final Logger logger = LoggerFactory.getLogger(WebSocketKrakenClient.class);
   private CountDownLatch messageLatch;
-  private ArrayList<JsonElement> messages;
+  private List<JsonElement> messages;
 
   public WebSocketKrakenClient(URI serverUri) {
     super(serverUri);
@@ -22,12 +24,20 @@ public class WebSocketKrakenClient extends WebSocketClient {
     messages = new ArrayList<>();
   }
 
-  public ArrayList<JsonElement> getMessages() {
+  public List<JsonElement> getMessages() {
     return messages;
   }
 
   public JsonElement getLastMessage() {
     return messages.get(messages.size() - 1);
+  }
+
+  public JsonElement getLastMessageContaining(String stringToContain) {
+    Optional<JsonElement> last =  messages
+            .stream()
+            .filter(m -> m.toString().contains(stringToContain))
+            .reduce((first, second) -> second);
+    return last.orElse(new JsonObject());
   }
 
   @Override
