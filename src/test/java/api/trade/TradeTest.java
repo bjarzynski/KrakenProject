@@ -45,4 +45,20 @@ public class TradeTest {
     TradeMessage tradeMessage = new TradeMessage(krakenClient.getLastMessage());;
     Assert.assertEquals(tradeMessage.getChannelName(), "trade");
   }
+
+  @Test
+  public void checkTriggeringOrderParameters() throws URISyntaxException {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+    krakenClient.connect();
+    krakenClient.awaitForMessage(10);
+    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("subscribe", new String[]{"ETH/USD"}, new Subscription("trade"));
+    krakenClient.prepareMessageAwaiting();
+    krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
+    krakenClient.awaitForMessage(10);
+    krakenClient.prepareMessageAwaiting();
+    krakenClient.awaitForMessage(100);
+    TradeMessage tradeMessage = new TradeMessage(krakenClient.getLastMessage());;
+    tradeMessage.getTradeList().forEach(trade -> Assert.assertTrue(trade.getOrderType().equals("m") || trade.getOrderType().equals("l")));
+    tradeMessage.getTradeList().forEach(trade -> Assert.assertTrue(trade.getSide().equals("b") || trade.getSide().equals("s")));
+  }
 }

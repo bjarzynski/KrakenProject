@@ -20,4 +20,20 @@ public class Trade {
   public Double getTime() {
     return time;
   }
+
+  public String getSide() {
+    return side;
+  }
+
+  public void setSide(String side) {
+    this.side = side;
+  }
+
+  public String getOrderType() {
+    return orderType;
+  }
+
+  public void setOrderType(String orderType) {
+    this.orderType = orderType;
+  }
 }
