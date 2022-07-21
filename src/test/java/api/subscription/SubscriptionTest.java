@@ -16,7 +16,7 @@ public class SubscriptionTest extends TestBase {
   @DataProvider(name = "channel-test-data")
   public Object[][] dataProviderApi() {
     return new Object[][]{
-            {"ticker"}, {"book"}, {"trade"}
+            {"ticker"}, {"trade"}
     };
   }
 
