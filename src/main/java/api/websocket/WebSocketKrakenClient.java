@@ -1,4 +1,4 @@
-package api;
+package api.websocket;
 
 import com.google.gson.*;
 import org.java_websocket.client.WebSocketClient;
@@ -9,14 +9,14 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class WebSocketKrakenClient extends WebSocketClient {
   private final Logger logger = LoggerFactory.getLogger(WebSocketKrakenClient.class);
   private CountDownLatch messageLatch;
-  private List<JsonElement> messages;
+  private final List<JsonElement> messages;
 
   public WebSocketKrakenClient(URI serverUri) {
     super(serverUri);
@@ -33,21 +33,24 @@ public class WebSocketKrakenClient extends WebSocketClient {
   }
 
   public JsonElement getLastMessageContaining(String stringToContain) {
-    Optional<JsonElement> last =  messages
+    List<JsonElement> messagesCopy = new ArrayList<>(messages);
+    List<JsonElement> filteredMessages =  messagesCopy
             .stream()
             .filter(m -> m.toString().contains(stringToContain))
-            .reduce((first, second) -> second);
-    return last.orElse(new JsonObject());
+            .collect(Collectors.toList());
+    if(!filteredMessages.isEmpty()) {
+      return filteredMessages.get(filteredMessages.size()-1);
+    } else {
+      return new JsonObject();
+    }
   }
 
   @Override
   public void onOpen(ServerHandshake serverHandshake) {
-    logger.info("Connected to Kraken WebSockets API");
   }
 
   @Override
   public void onMessage(String s) {
-    logger.info("Message from Kraken API: " + s);
     messages.add(JsonParser.parseString(s));
     if(!s.contains("heartbeat")) {
       messageLatch.countDown();
@@ -56,21 +59,19 @@ public class WebSocketKrakenClient extends WebSocketClient {
 
   @Override
   public void onClose(int i, String s, boolean b) {
-    logger.info("Disconnected from Kraken Websockets API");
     messageLatch.countDown();
   }
 
   @Override
   public void onError(Exception e) {
-    logger.info("Error from Kraken API: ");
-    e.printStackTrace();
+    logger.info("Error from Kraken API: " + e);
   }
 
   public void awaitForMessage(long timeoutSeconds) {
     try {
       messageLatch.await(timeoutSeconds, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      logger.info("Exception during wait for message");
     }
   }
 

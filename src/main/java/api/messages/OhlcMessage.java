@@ -1,26 +1,26 @@
-package api;
+package api.messages;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 public class OhlcMessage {
-  private Integer channelId;
-  private Double time;
-  private Double etime;
-  private Double open;
-  private Double high;
-  private Double low;
-  private Double close;
-  private Double vwap;
-  private Double volume;
-  private Integer count;
-  private String channelName;
-  private String pair;
+  private final Integer channelId;
+  private final Double time;
+  private final Double etime;
+  private final Double open;
+  private final Double high;
+  private final Double low;
+  private final Double close;
+  private final Double vwap;
+  private final Double volume;
+  private final Integer count;
+  private final String channelName;
+  private final String pair;
 
   public OhlcMessage(JsonElement jsonElement) {
-    JsonArray jsonArray = jsonElement.getAsJsonArray();
-    this.channelId = jsonArray.get(0).getAsInt();
-    JsonArray candleArray = jsonArray.get(1).getAsJsonArray();
+    JsonArray ohlcJsonArray = jsonElement.getAsJsonArray();
+    this.channelId = ohlcJsonArray.get(0).getAsInt();
+    JsonArray candleArray = ohlcJsonArray.get(1).getAsJsonArray();
     this.time = candleArray.get(0).getAsDouble();
     this.etime = candleArray.get(1).getAsDouble();
     this.open = candleArray.get(2).getAsDouble();
@@ -30,16 +30,8 @@ public class OhlcMessage {
     this.vwap = candleArray.get(6).getAsDouble();
     this.volume = candleArray.get(7).getAsDouble();
     this.count = candleArray.get(8).getAsInt();
-    this.channelName = jsonArray.get(2).getAsString();
-    this.pair = jsonArray.get(3).getAsString();
-  }
-
-  public Double getTime() {
-    return time;
-  }
-
-  public Double getEtime() {
-    return etime;
+    this.channelName = ohlcJsonArray.get(2).getAsString();
+    this.pair = ohlcJsonArray.get(3).getAsString();
   }
 
   public Double getOpen() {
@@ -52,10 +44,6 @@ public class OhlcMessage {
 
   public Double getLow() {
     return low;
-  }
-
-  public Double getClose() {
-    return close;
   }
 
   public String getChannelName() {

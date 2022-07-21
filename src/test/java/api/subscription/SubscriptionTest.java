@@ -1,121 +1,134 @@
 package api.subscription;
 
-import api.*;
+import api.base.TestBase;
+import api.messages.Subscription;
+import api.messages.SubscriptionMessage;
+import api.messages.SubscriptionStatusMessage;
+import api.websocket.WebSocketKrakenClient;
 import com.google.gson.Gson;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import utils.JsonUtils;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-public class SubscriptionTest {
-  @DataProvider(name = "test-data")
+public class SubscriptionTest extends TestBase {
+  private final String currencyPair = "ETH/USD";
+  @DataProvider(name = "channel-test-data")
   public Object[][] dataProviderApi() {
     return new Object[][]{
             {"ticker"}, {"book"}, {"trade"}
     };
   }
 
-  @Test(dataProvider = "test-data")
-  public void checkSubscriptionStatus(String channel) throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  @Test(dataProvider = "channel-test-data")
+  public void checkSubscriptionStatus(String channel){
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("subscribe", new String[]{"XBT/USD"}, new Subscription(channel));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("subscribe", new String[]{currencyPair}, new Subscription(channel));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
-    SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getStatus(), "subscribed");
-    subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{"XBT/USD"}, new Subscription(channel));
+    SubscriptionStatusMessage subscriptionStatusMessage =
+            gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
+    Assert.assertEquals(subscriptionStatusMessage.getStatus(), "subscribed", "Incorrect subscription status");
+    subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription(channel));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
-    if(krakenClient.getLastMessage().isJsonArray()) {
-      krakenClient.prepareMessageAwaiting();
-      krakenClient.awaitForMessage(10);
-    }
-    subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessageContaining("event"), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getStatus(), "unsubscribed");
+    krakenClient.awaitForMessage(messageTimeout);
+    krakenClient.prepareMessageAwaiting();
+    krakenClient.awaitForMessage(messageTimeout);
+    subscriptionStatusMessage =
+            gson.fromJson(krakenClient.getLastMessageContaining("subscriptionStatus"), SubscriptionStatusMessage.class);
+    Assert.assertEquals(subscriptionStatusMessage.getStatus(), "unsubscribed", "Incorrect subscription status");
     krakenClient.close();
   }
 
   @Test
-  public void checkSubscriptionError() throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  public void checkSubscriptionNotFoundError() {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{"XBT/USD"}, new Subscription("ticker"));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("ticker"));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
     SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription Not Found");
+    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription Not Found", "Incorrect error message");
     krakenClient.close();
   }
 
   @Test
-  public void checkSubscriptionNonExistingPairError() throws URISyntaxException {
+  public void checkSubscriptionNotExistingPairError() {
     String currencyPair = "ABC/USD";
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("ticker"));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("ticker"));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
     SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Currency pair not supported " + currencyPair);
+    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Currency pair not supported " + currencyPair,
+            "Incorrect error message");
     krakenClient.close();
   }
 
   @Test
-  public void checkSubscriptionInvalidNameError() throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  public void checkSubscriptionInvalidNameError() {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{"XBT/USD"}, new Subscription("tick"));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("tick"));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
     SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription name invalid");
+    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription name invalid",
+            "Incorrect error message");
     krakenClient.close();
   }
 
   @Test
-  public void checkSubscriptionInvalidDepthError() throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  public void checkSubscriptionInvalidDepthError() {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{"XBT/USD"}, new Subscription("book", 5));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("book", 5));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
     SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription depth not supported");
+    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription depth not supported",
+            "Incorrect error message");
     krakenClient.close();
   }
 
   @Test
-  public void checkSubscriptionIDepthForInvalidChannelError() throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  public void checkSubscriptionDepthForInvalidChannelError() {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("unsubscribe", new String[]{"XBT/USD"}, new Subscription("ticker", 100));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("unsubscribe", new String[]{currencyPair}, new Subscription("ticker", 100));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     Gson gson = new Gson();
     SubscriptionStatusMessage subscriptionStatusMes = gson.fromJson(krakenClient.getLastMessage(), SubscriptionStatusMessage.class);
-    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription ticker doesn't require depth");
+    Assert.assertEquals(subscriptionStatusMes.getErrorMessage(), "Subscription ticker doesn't require depth",
+            "Incorrect error message");
     krakenClient.close();
   }
 

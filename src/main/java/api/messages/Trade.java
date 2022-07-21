@@ -1,12 +1,12 @@
-package api;
+package api.messages;
 
 public class Trade {
-  private Double price;
-  private Double volume;
-  private Double time;
-  private String side;
-  private String orderType;
-  private String misc;
+  private final Double price;
+  private final Double volume;
+  private final Double time;
+  private final String side;
+  private final String orderType;
+  private final String misc;
 
   public Trade(Double price, Double volume, Double time, String side, String orderType, String misc) {
     this.price = price;
@@ -25,15 +25,7 @@ public class Trade {
     return side;
   }
 
-  public void setSide(String side) {
-    this.side = side;
-  }
-
   public String getOrderType() {
     return orderType;
-  }
-
-  public void setOrderType(String orderType) {
-    this.orderType = orderType;
   }
 }

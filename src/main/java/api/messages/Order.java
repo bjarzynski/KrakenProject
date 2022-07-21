@@ -1,9 +1,9 @@
-package api;
+package api.messages;
 
 public class Order {
-  private double price;
-  private double volume;
-  private double timestamp;
+  private final double price;
+  private final double volume;
+  private final double timestamp;
 
   public Order(double price, double volume, double timestamp) {
     this.price = price;
@@ -13,13 +13,5 @@ public class Order {
 
   public double getPrice() {
     return price;
-  }
-
-  public double getVolume() {
-    return volume;
-  }
-
-  public double getTimestamp() {
-    return timestamp;
   }
 }

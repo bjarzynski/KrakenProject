@@ -1,17 +1,17 @@
 package api.spread;
 
-import api.*;
-import com.google.gson.Gson;
+import api.base.TestBase;
+import api.messages.SpreadMessage;
+import api.messages.Subscription;
+import api.messages.SubscriptionMessage;
+import api.websocket.WebSocketKrakenClient;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import utils.JsonUtils;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-public class SpreadTest {
-  @DataProvider(name = "test-data")
+public class SpreadTest extends TestBase {
+  @DataProvider(name = "pair-test-data")
   public Object[][] dataProviderApi() {
     return new Object[][]{
             {"XBT/USD"}, {"ETH/USD"}, {"XDG/USD"}
@@ -19,32 +19,36 @@ public class SpreadTest {
   }
 
   @Test
-  public void checkBidAsk() throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  public void checkBidAskComparison() {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("subscribe", new String[]{"XBT/USD"}, new Subscription("spread"));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("subscribe", new String[]{"XBT/USD"}, new Subscription("spread"));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     krakenClient.prepareMessageAwaiting();
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     SpreadMessage spreadMessage = new SpreadMessage(krakenClient.getLastMessage());
-    Assert.assertTrue(spreadMessage.getAsk() > spreadMessage.getBid());
+    Assert.assertTrue(spreadMessage.getAsk() >= spreadMessage.getBid(), "Ask is lower than Bid");
+    krakenClient.close();
   }
 
-  @Test(dataProvider = "test-data")
-  public void checkPair(String pair) throws URISyntaxException {
-    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(new URI("wss://ws.kraken.com"));
+  @Test(dataProvider = "pair-test-data")
+  public void checkPairResponse(String pair) {
+    WebSocketKrakenClient krakenClient = new WebSocketKrakenClient(appUri);
     krakenClient.connect();
-    krakenClient.awaitForMessage(10);
-    SubscriptionMessage subscriptionMessage = new SubscriptionMessage("subscribe", new String[]{pair}, new Subscription("spread"));
+    krakenClient.awaitForMessage(messageTimeout);
+    SubscriptionMessage subscriptionMessage =
+            new SubscriptionMessage("subscribe", new String[]{pair}, new Subscription("spread"));
     krakenClient.prepareMessageAwaiting();
     krakenClient.send(JsonUtils.getJsonString(subscriptionMessage));
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     krakenClient.prepareMessageAwaiting();
-    krakenClient.awaitForMessage(10);
+    krakenClient.awaitForMessage(messageTimeout);
     SpreadMessage spreadMessage = new SpreadMessage(krakenClient.getLastMessage());
-    Assert.assertEquals(spreadMessage.getPair(), pair);
+    Assert.assertEquals(spreadMessage.getPair(), pair, "Incorrect currency pair in response");
+    krakenClient.close();
   }
 }
