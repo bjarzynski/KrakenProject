@@ -14,7 +14,7 @@ public class TestBase {
   @BeforeMethod
   public void beforeTestSetup() throws URISyntaxException {
     appUri = new URI("wss://ws.kraken.com");
-    messageTimeout = 30;
+    messageTimeout = 60;
   }
 
 }
