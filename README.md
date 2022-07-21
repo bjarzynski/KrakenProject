@@ -9,4 +9,5 @@ JDK 15
 Maven
 
 ### How to execute on local:
-mvn test
+Import project in any Java IDE as Maven project.
+Use command: mvn test

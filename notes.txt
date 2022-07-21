@@ -1,0 +1,33 @@
+Tests description:
+
+Book tests:
+-checkBookSorting - this test checks if book is correctly sorted ('as' - ascending, 'bs' - descending)
+-checkBookDepth - this test checks if book reponse gives the same book depth as value of 'depth' parameter for subscription
+Ohlc tests:
+-checkOhlcTimeInterval - this test checks if candle has the same time interval as value of 'interval' parameter for subscription
+-checkOhlcOpenPrice - this test verifies that open price value is between high price and low price
+-checkOhlcTrades - this test verifies that candle has any trades and volume > 0
+Spread tests:
+-checkBidAskComparison - this test verifies that Ask value is >= Bid value
+-checkPairResponse - this test verifies that after subscribing to spread for any currency pair, spread message give the same currency pair
+Subscription tests:
+-checkSubscriptionStatus - this test checks if after subscribing subscription status is changed to 'subscribed' and after unsubscribing subscription status is changed to 'unsubscribed'
+-checkSubscriptionNotFoundError - this test checks that if someone tries to unsubscribe an event which wasn't subscribed before, he will get an error message.
+-checkSubscriptionNotExistingPairError - this test checks that if someone tries to subscribe to an unexisting currency pair, he will get an error message.
+-checkSubscriptionInvalidNameError - this test checks that if someone tries to subscribe to an unexisting event, he will get an error message.
+-checkSubscriptionInvalidDepthError - this test checks that if someone gives incorrect depth value for subscription, he will get an error message.
+Trade tests:
+-checkTradeTimeSorting - this test verifies that trades are correctly sorted by time.
+-checkTradeChannelName - this test verifies that the trade message gives the correct channel name.
+-checkTriggeringOrderParameters - this test verifies that in the response all order types have format 'm' or 'l' and trade sides have format 'b' or 's'.
+
+
+Short packages summary:
+api.messages - responses and requests are mapped to objects
+api.websocket - client for handling connection with Websockets, saving messages and providing methods to wait for new messages.
+
+Notes:
+Test were quite hard to make them stable (some tests still could be not 100% stable).
+From documentation a few payloads were quite hard to understand at first glance. Also they were troublesome to map to objects because their structure.
+
+
