@@ -1,8 +1,8 @@
-# Kraken Assessment
+# WebSocket tests example
 
 ### How to execute using Docker:
-docker build --tag kraken-docker-test .  
-docker run kraken-docker-test
+docker build --tag websocket-example-test .  
+docker run websocket-example-test
 
 ### Pre-requisites for executing on local:
 JDK 15  
