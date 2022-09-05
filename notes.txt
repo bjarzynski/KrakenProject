@@ -25,9 +25,3 @@ Trade tests:
 Short packages summary:
 api.messages - responses and requests are mapped to objects
 api.websocket - client for handling connection with Websockets, saving messages and providing methods to wait for new messages.
-
-Notes:
-Test were quite hard to make them stable (some tests still could be not 100% stable).
-From documentation a few payloads were quite hard to understand at first glance. Also they were troublesome to map to objects because their structure.
-
-
